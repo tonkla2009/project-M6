@@ -1,0 +1,295 @@
+<!DOCTYPE html><html lang="th"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — จัดการนักเรียน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#58a6ff;
+--green:#3fb950;--orange:#f0883e;--red:#f85149;--text:#e6edf3;--muted:#8b949e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sarabun',sans-serif;min-height:100vh;}
+header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:14px 28px;display:flex;align-items:center;gap:14px;}
+header h1{font-size:1.15rem;font-weight:700;}
+header p{font-size:.8rem;color:var(--muted);}
+.hright{margin-left:auto;}
+a.btn-back{background:none;border:1px solid var(--border);color:var(--text);
+  padding:7px 16px;border-radius:8px;font-size:.85rem;font-weight:600;
+  font-family:'Sarabun',sans-serif;cursor:pointer;text-decoration:none;
+  display:inline-block;}
+a.btn-back:hover{border-color:var(--accent);color:var(--accent);}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;
+  border-radius:8px;font-size:.85rem;font-weight:600;font-family:'Sarabun',sans-serif;
+  cursor:pointer;border:none;transition:opacity .2s;text-decoration:none;}
+.btn:hover{opacity:.82;}
+.btn-success{background:var(--green);color:#0d1117;}
+.btn-primary{background:var(--accent);color:#0d1117;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:4px 10px;font-size:.78rem;border-radius:6px;}
+.container{max-width:1100px;margin:0 auto;padding:28px 20px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+@media(max-width:700px){.stats{grid-template-columns:1fr;}}
+.stat-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:18px 22px;}
+.stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
+.stat-val{font-size:2.2rem;font-weight:700;color:var(--accent);margin-top:4px;}
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.search-box{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:8px 14px;color:var(--text);font-size:.9rem;
+  font-family:'Sarabun',sans-serif;}
+.search-box:focus{outline:none;border-color:var(--accent);}
+.table-wrap{background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:.9rem;}
+thead{background:#1c2128;}
+th{padding:11px 16px;text-align:left;font-size:.75rem;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--muted);font-weight:600;}
+td{padding:11px 16px;border-top:1px solid var(--border);}
+tr:hover td{background:rgba(255,255,255,.03);}
+.plate-chip{background:#1c2840;color:var(--accent);padding:2px 10px;
+  border-radius:6px;font-weight:700;font-size:.85rem;}
+.action-btns{display:flex;gap:6px;}
+.empty-td{text-align:center;padding:44px;color:var(--muted);font-size:.9rem;}
+/* alert */
+.alert{padding:10px 14px;border-radius:8px;font-size:.88rem;margin-bottom:18px;}
+.alert-success{background:#1a3a1a;border:1px solid var(--green);color:var(--green);}
+.alert-error  {background:#3a1010;border:1px solid var(--red);color:var(--red);}
+/* modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
+  z-index:100;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:28px;width:100%;max-width:480px;}
+.modal h2{font-size:1.1rem;font-weight:700;margin-bottom:20px;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:5px;}
+.form-control{width:100%;background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;color:var(--text);font-size:.9rem;
+  font-family:'Sarabun',sans-serif;}
+.form-control:focus{outline:none;border-color:var(--accent);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;}
+/* upload */
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:28px;
+  text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:4px;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);}
+.upload-zone p{color:var(--muted);font-size:.9rem;margin-top:8px;}
+.csv-hint{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.6;}
+code{background:#1c2128;padding:1px 6px;border-radius:4px;font-size:.82rem;}
+</style></head><body>
+<header>
+  <span style="font-size:1.4rem"></span>
+  <div><h1>Dashboard — จัดการข้อมูลนักเรียน</h1>
+  <p>เพิ่ม / แก้ไข / ลบ / อัปโหลด CSV</p></div>
+  <div class="hright"><a href="/" class="btn-back">← กลับหน้าหลัก</a></div>
+</header>
+
+<div class="container">
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+  {% if msgs %}{% for cat,msg in msgs %}
+  <div class="alert alert-{{cat}}">{{msg}}</div>
+  {% endfor %}{% endif %}{% endwith %}
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">นักเรียนทั้งหมด</div>
+      <div class="stat-val">{{total}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">จำนวนชั้นเรียน</div>
+      <div class="stat-val">{{grades}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ป้ายทะเบียนในระบบ</div>
+      <div class="stat-val">{{total}}</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="search-box" id="searchBox"
+           placeholder="🔍 ค้นหา ชื่อ / ป้ายทะเบียน / ชั้น / เลขประจำตัวนักเรียน..."
+           oninput="filterTable()">
+    <button class="btn btn-success" onclick="openAdd()">＋ เพิ่มนักเรียน</button>
+    <button class="btn btn-primary"
+            onclick="document.getElementById('csvOverlay').classList.add('open')">
+      ⬆ อัปโหลด CSV
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="tbl">
+      <thead><tr>
+        <th>#</th><th>ป้ายทะเบียน</th><th>ชื่อ-นามสกุล</th>
+        <th>ชั้น/ห้อง</th><th>เลขประจำตัวนักเรียน</th><th>จัดการ</th>
+      </tr></thead>
+      <tbody>
+      {% for s in students %}
+      <tr>
+        <td style="color:var(--muted)">{{loop.index}}</td>
+        <td><span class="plate-chip">{{s.license_plate}}</span></td>
+        <td>{{s.first_name}} {{s.last_name}}</td>
+        <td>ม.{{s.grade}}/{{s.room}}</td>
+        <td style="color:var(--muted)">{{s.club or '—'}}</td>
+        <td><div class="action-btns">
+          <button class="btn btn-ghost btn-sm"
+            onclick="openEdit({{s.id}},'{{s.license_plate}}','{{s.first_name}}',
+            '{{s.last_name}}','{{s.club}}','{{s.grade}}','{{s.room}}')">
+            ✏️ แก้ไข</button>
+          <button class="btn btn-danger btn-sm"
+            onclick="confirmDelete({{s.id}},'{{s.license_plate}}')">
+            🗑 ลบ</button>
+        </div></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="empty-td">ยังไม่มีข้อมูลนักเรียน<br>
+        กด "เพิ่มนักเรียน" หรืออัปโหลด CSV เพื่อเริ่มต้น</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: Add / Edit -->
+<div class="overlay" id="formOverlay">
+<div class="modal">
+  <h2 id="modalTitle">เพิ่มนักเรียน</h2>
+  <form method="POST" id="studentForm">
+    <input type="hidden" name="student_id" id="fId">
+    <div class="form-group">
+      <label>ป้ายทะเบียน *</label>
+      <input class="form-control" name="license_plate" id="fPlate"
+             placeholder="เช่น กท 2058" required>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ชื่อ *</label>
+        <input class="form-control" name="first_name" id="fFirst"
+               placeholder="ชื่อ" required>
+      </div>
+      <div class="form-group">
+        <label>นามสกุล *</label>
+        <input class="form-control" name="last_name" id="fLast"
+               placeholder="นามสกุล" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ชั้น *</label>
+        <input class="form-control" name="grade" id="fGrade"
+               placeholder="เช่น ม6" required>
+      </div>
+      <div class="form-group">
+        <label>ห้อง *</label>
+        <input class="form-control" name="room" id="fRoom"
+               placeholder="เช่น 1" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>เลขประจำตัวนักเรียน</label>
+      <input class="form-control" name="club" id="fClub"
+             placeholder="ไม่บังคับ">
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost"
+              onclick="document.getElementById('formOverlay').classList.remove('open')">
+        ยกเลิก</button>
+      <button type="submit" class="btn btn-success" id="submitBtn">บันทึก</button>
+    </div>
+  </form>
+</div></div>
+
+<!-- Modal: CSV Upload -->
+<div class="overlay" id="csvOverlay">
+<div class="modal">
+  <h2>อัปโหลด CSV</h2>
+  <form method="POST" action="/dashboard/import" enctype="multipart/form-data">
+    <div class="upload-zone" id="dropZone"
+         onclick="document.getElementById('csvFile').click()"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="handleDrop(event)">
+      <div style="font-size:2.5rem">📂</div>
+      <p id="dropLabel">คลิกหรือลากไฟล์ CSV มาวางที่นี่</p>
+    </div>
+    <input type="file" id="csvFile" name="csv_file" accept=".csv"
+           style="display:none"
+           onchange="document.getElementById('dropLabel').textContent=this.files[0].name">
+    <div class="csv-hint">
+      รูปแบบคอลัมน์ที่รองรับ:<br>
+      <code>license_plate</code>, <code>first_name</code>, <code>last_name</code>,
+      <code>club</code>, <code>grade</code>, <code>room</code><br>
+      ป้ายทะเบียนซ้ำจะถูกข้ามโดยอัตโนมัติ
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost"
+              onclick="document.getElementById('csvOverlay').classList.remove('open')">
+        ยกเลิก</button>
+      <button type="submit" class="btn btn-primary">⬆ นำเข้าข้อมูล</button>
+    </div>
+  </form>
+</div></div>
+
+<!-- Modal: Delete confirm -->
+<div class="overlay" id="delOverlay">
+<div class="modal" style="max-width:380px">
+  <h2>ยืนยันการลบ</h2>
+  <p style="margin:16px 0;color:var(--muted)">
+    ต้องการลบป้ายทะเบียน
+    <strong id="delPlate" style="color:var(--red)"></strong> ใช่ไหม?
+  </p>
+  <div class="modal-footer">
+    <button class="btn btn-ghost"
+            onclick="document.getElementById('delOverlay').classList.remove('open')">
+      ยกเลิก</button>
+    <form method="POST" id="delForm" style="display:inline">
+      <button type="submit" class="btn btn-danger">ลบเลย</button>
+    </form>
+  </div>
+</div></div>
+
+<script>
+function openAdd(){
+  document.getElementById("modalTitle").textContent="เพิ่มนักเรียน";
+  document.getElementById("studentForm").action="/dashboard/add";
+  document.getElementById("submitBtn").textContent="เพิ่ม";
+  ["fId","fPlate","fFirst","fLast","fClub","fGrade","fRoom"]
+    .forEach(id=>document.getElementById(id).value="");
+  document.getElementById("formOverlay").classList.add("open");
+}
+function openEdit(id,plate,fname,lname,club,grade,room){
+  document.getElementById("modalTitle").textContent="แก้ไขข้อมูล";
+  document.getElementById("studentForm").action="/dashboard/edit";
+  document.getElementById("submitBtn").textContent="บันทึก";
+  document.getElementById("fId").value=id;
+  document.getElementById("fPlate").value=plate;
+  document.getElementById("fFirst").value=fname;
+  document.getElementById("fLast").value=lname;
+  document.getElementById("fClub").value=club;
+  document.getElementById("fGrade").value=grade;
+  document.getElementById("fRoom").value=room;
+  document.getElementById("formOverlay").classList.add("open");
+}
+function confirmDelete(id,plate){
+  document.getElementById("delPlate").textContent=plate;
+  document.getElementById("delForm").action="/dashboard/delete/"+id;
+  document.getElementById("delOverlay").classList.add("open");
+}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById("dropZone").classList.remove("drag");
+  const f=e.dataTransfer.files[0];
+  if(f){document.getElementById("csvFile").files=e.dataTransfer.files;
+  document.getElementById("dropLabel").textContent=f.name;}
+}
+function filterTable(){
+  const q=document.getElementById("searchBox").value.toLowerCase();
+  document.querySelectorAll("#tbl tbody tr").forEach(tr=>{
+    tr.style.display=tr.textContent.toLowerCase().includes(q)?"":"none";
+  });
+}
+</script></body></html>
