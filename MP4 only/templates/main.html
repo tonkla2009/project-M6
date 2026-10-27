@@ -1,0 +1,134 @@
+<!DOCTYPE html><html lang="th"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ระบบตรวจจับป้ายทะเบียน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#58a6ff;
+--green:#3fb950;--orange:#f0883e;--text:#e6edf3;--muted:#8b949e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sarabun',sans-serif;min-height:100vh;}
+header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:14px 28px;display:flex;align-items:center;gap:14px;}
+.logo{font-size:1.5rem;}
+header h1{font-size:1.15rem;font-weight:700;}
+header p{font-size:.8rem;color:var(--muted);}
+.hright{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.badge{background:#1f2a1f;border:1px solid var(--green);color:var(--green);
+  padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;}
+.badge.offline{background:#2a1f1f;border-color:var(--orange);color:var(--orange);}
+.btn-dash{background:var(--accent);color:#0d1117;border:none;padding:7px 16px;
+  border-radius:8px;font-size:.85rem;font-weight:700;font-family:'Sarabun',sans-serif;
+  cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.btn-dash:hover{opacity:.85;}
+.container{max-width:1300px;margin:0 auto;padding:24px 20px;
+  display:grid;grid-template-columns:1fr 380px;gap:20px;}
+@media(max-width:900px){.container{grid-template-columns:1fr;}}
+.cam-wrap{background:#000;border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;position:relative;}
+.cam-wrap img{width:100%;display:block;}
+.cam-label{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.65);
+  padding:4px 10px;border-radius:6px;font-size:.75rem;color:var(--muted);}
+.sidebar{display:flex;flex-direction:column;gap:16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.card-title{font-size:.75rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted);margin-bottom:14px;}
+#match-card.found{border-color:var(--green);}
+#match-card.missed{border-color:var(--orange);}
+.plate-display{font-size:2rem;font-weight:700;letter-spacing:.1em;
+  color:var(--accent);margin-bottom:8px;min-height:2.5rem;}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:.9rem;}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:var(--muted);}
+.info-val{font-weight:600;}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:12px;
+  font-size:.75rem;font-weight:600;margin-top:10px;}
+.status-badge.found{background:#1a3a1a;color:var(--green);}
+.status-badge.missed{background:#3a2010;color:var(--orange);}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.hist-header .card-title{margin-bottom:0;}
+.btn-reset{background:none;border:1px solid var(--border);color:var(--muted);
+  padding:3px 10px;border-radius:8px;font-size:.75rem;font-family:'Sarabun',sans-serif;
+  cursor:pointer;transition:all .2s;}
+.btn-reset:hover{border-color:#e05c5c;color:#e05c5c;background:rgba(224,92,92,.08);}
+.hist-item{display:flex;align-items:center;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:.85rem;}
+.hist-item:last-child{border-bottom:none;}
+.hist-plate{background:#1c2840;color:var(--accent);padding:2px 8px;
+  border-radius:6px;font-weight:700;font-size:.8rem;white-space:nowrap;}
+.hist-name{flex:1;font-weight:600;}
+.hist-grade{color:var(--muted);font-size:.78rem;}
+.hist-time{color:var(--muted);font-size:.72rem;white-space:nowrap;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(63,185,80,.5)}
+  70%{box-shadow:0 0 0 10px rgba(63,185,80,0)}100%{box-shadow:0 0 0 0 rgba(63,185,80,0)}}
+.pulse{animation:pulse .8s ease-out;}
+</style></head><body>
+<header>
+  <span class="logo">🚗</span>
+  <div><h1>ระบบตรวจจับป้ายทะเบียน</h1>
+  <p>Thai License Plate Recognition — OBS Virtual Camera</p></div>
+  <div class="hright">
+    <a href="/dashboard" class="btn-dash"> Dashboard</a>
+    <span class="badge" id="cam-badge">●กล้องออนไลน์</span>
+  </div>
+</header>
+<div class="container">
+  <div><div class="cam-wrap">
+    <img src="/video_feed" alt="camera">
+    <span class="cam-label">OBS Virtual Camera</span>
+  </div></div>
+  <div class="sidebar">
+    <div class="card" id="match-card">
+      <div class="card-title">ผลการตรวจสอบ</div>
+      <div class="plate-display" id="plate-text">—</div>
+      <div id="result-body"><div style="color:var(--muted);font-size:.9rem">รอตรวจจับป้ายทะเบียน...</div></div>
+    </div>
+    <div class="card">
+      <div class="hist-header">
+        <div class="card-title">ประวัติล่าสุด</div>
+        <button class="btn-reset" onclick="resetHistory()"> ล้างประวัติ</button>
+      </div>
+      <div id="history-list"><div style="color:var(--muted);font-size:.85rem">ยังไม่มีประวัติ</div></div>
+    </div>
+  </div>
+</div>
+<script>
+let lastPlate="",lastMatchTime=0;
+async function pollStatus(){
+  try{
+    const d=await fetch("/status").then(r=>r.json());
+    document.getElementById("cam-badge").className="badge";
+    document.getElementById("cam-badge").textContent="● กล้องออนไลน์";
+    const pe=document.getElementById("plate-text");
+    if(d.plate!==lastPlate){pe.textContent=d.plate||"—";lastPlate=d.plate;}
+    const card=document.getElementById("match-card"),body=document.getElementById("result-body");
+    if(d.match&&d.match_time!==lastMatchTime){
+      lastMatchTime=d.match_time;const m=d.match;
+      card.className="card found pulse";setTimeout(()=>card.classList.remove("pulse"),900);
+      body.innerHTML=`<div class="info-row"><span class="info-label">ชื่อ-นามสกุล</span><span class="info-val">${m.name}</span></div>
+        <div class="info-row"><span class="info-label">ชั้น / ห้อง</span><span class="info-val">${m.grade}</span></div>
+        <div class="info-row"><span class="info-label">เลขประจำตัวนักเรียน</span><span class="info-val">${m.club}</span></div>
+        <span class="status-badge found">✓ พบข้อมูล</span>`;
+    }else if(d.plate&&!d.match){
+      card.className="card missed";
+      body.innerHTML=`<div style="color:var(--muted);font-size:.9rem;margin-bottom:10px">ไม่พบข้อมูลในระบบ</div>
+        <span class="status-badge missed">✗ ไม่พบ</span>`;
+    }
+    const hel=document.getElementById("history-list");
+    if(d.history&&d.history.length>0){
+      hel.innerHTML=d.history.map(h=>`<div class="hist-item">
+        <span class="hist-plate">${h.plate}</span><span class="hist-name">${h.name}</span>
+        <span class="hist-grade">${h.grade}</span><span class="hist-time">${h.time}</span>
+      </div>`).join("");
+    }else{hel.innerHTML='<div style="color:var(--muted);font-size:.85rem">ยังไม่มีประวัติ</div>';}
+  }catch(e){
+    document.getElementById("cam-badge").className="badge offline";
+    document.getElementById("cam-badge").textContent="● ออฟไลน์";
+  }
+}
+async function resetHistory(){
+  await fetch("/reset",{method:"POST"});
+  document.getElementById("history-list").innerHTML='<div style="color:var(--muted);font-size:.85rem">ยังไม่มีประวัติ</div>';
+}
+setInterval(pollStatus,800);pollStatus();
+</script></body></html>
